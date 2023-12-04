@@ -6,6 +6,7 @@
 - 不要在本地pip，在虚拟环境中pip
   - 及时更新requirements.txt，保证项目可运行
 - 项目无关的生成文件记得添加进 .gitignore
+- 当然直接跑是跑不了的，要开发记得找我要config文件
 
 ## git 规范
 
