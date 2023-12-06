@@ -15,7 +15,7 @@ from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 
-from auth import generate_token, generate_refresh_token, jwt_auth
+from .auth import generate_token, generate_refresh_token, jwt_auth
 from .email import varify_captcha
 from ..models import User
 

@@ -17,8 +17,4 @@ urlpatterns = [
 
     path('send-captcha', api.send_captcha),
     path('change-email', api.change_email),
-
-    path('add-graph-node', api.add_graph_node),
-    path('delete-graph-node', api.delete_graph_node),
-
 ]

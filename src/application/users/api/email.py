@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 
-from auth import generate_token, jwt_auth
+from .auth import generate_token, jwt_auth
 from ..models import User
 from ..models.email_captcha import EmailCaptcha
 from django.conf import settings
