@@ -5,9 +5,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-MEDIA_ADDRESS = 'http://103.133.178.116:8000/media/'
-
-
 class User(AbstractUser):
     gender_choices = (
         ('secret', '不设置/保密'),
@@ -20,10 +17,17 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, verbose_name='邮箱', error_messages={'unique': '该邮箱已被注册'}, blank=False)
     gender = models.CharField(choices=gender_choices, max_length=32, default='保密', verbose_name='性别')
     motto = models.CharField(max_length=256, default='这个人很懒，什么都没有留下', verbose_name='个性签名')
-    avatar = models.ImageField(upload_to='avatar/%Y%m%d/', default='avatar/default.png', verbose_name='头像')
+    avatar = models.ImageField(upload_to='avatar/', default='avatar/default.png', verbose_name='头像')
+    date_joined = models.DateTimeField(auto_now_add=True, verbose_name='注册时间')
+    last_login = models.DateTimeField(auto_now=True, verbose_name='最后登录时间')
+    last_ip = models.GenericIPAddressField(verbose_name='最后登录IP')
+
+    subscribes = models.ManyToManyField('self', symmetrical=False, related_name='subscribed_by')
+    send_messages = models.ManyToManyField('self', symmetrical=False, related_name='received_by', through='Message')
+    collections = models.ManyToManyField('restaurant.Restaurant', related_name='collected_by')
 
     def get_avatar_url(self):
-        return MEDIA_ADDRESS + str(self.avatar)
+        return str(self.avatar)
 
     def __str__(self):
         return self.username

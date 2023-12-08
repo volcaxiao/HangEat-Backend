@@ -2,12 +2,12 @@ from datetime import timedelta
 
 import jwt
 from django.conf import settings
-from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET
 
 from ..models import User
 from ..models.auth_record import AuthRecord
+from .. import *
 
 
 def byte2str(b):
@@ -89,6 +89,7 @@ def generate_refresh_token(user: User, refresh_token_delta: int = 6 * 24) -> str
     return byte2str(jwt.encode(refresh_token_payload, settings.SECRET_KEY, algorithm="HS256"))
 
 
+@response_wrapper
 @require_GET
 def refresh_token(request):
     """
@@ -125,9 +126,9 @@ def refresh_token(request):
         # 生成新的token
         token = generate_token(user)
 
-        return JsonResponse({'token': token}, status=200)
+        return success_api_response({'token': token})
     except jwt.InvalidTokenError:
-        return JsonResponse({'error': '登录令牌无效， 请重新登录'}, status=401)
+        return failed_api_response(ErrorCode.INVALID_TOKEN_ERROR, '登录过期, token无效')
 
 
 def jwt_auth():
@@ -136,7 +137,7 @@ def jwt_auth():
             user = get_user(request)
             request.user = user
             if user is None:
-                return JsonResponse({'error': '请先登录'}, status=401)
+                return failed_api_response(ErrorCode.UNAUTHORIZED_ERROR, '未登录')
             return api(request, *args, **kwargs)
 
         return wrapper

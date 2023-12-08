@@ -18,6 +18,3 @@ jobs:
       - run: cd /Users/hangeat/Public/backend
           && source venv/bin/activate
           && pip install -r requirements.txt
-          && cd src
-          && python manage.py runserver localhost:114514
-

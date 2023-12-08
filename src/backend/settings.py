@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = _YAML_CONFIG['DjangoSecretKey']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = _YAML_CONFIG['Debug']
 
 ALLOWED_HOSTS = _YAML_CONFIG['AllowedHosts']
 
@@ -43,9 +43,11 @@ INSTALLED_APPS = [
     # my apps
     'corsheaders',  # 跨域请求
     'application.users',
+    'application.restaurant',
 ]
 
 MIDDLEWARE = [
+    'django.middleware.cache.UpdateCacheMiddleware',    # 更新缓存
     'corsheaders.middleware.CorsMiddleware',  # 跨域请求
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -53,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',  # 读取缓存
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -88,6 +91,17 @@ DATABASES = {
         'HOST': _YAML_CONFIG['Database']['Host'],
         'PORT': _YAML_CONFIG['Database']['Port'],
         'OPTIONS': {'init_command': 'SET default_storage_engine=INNODB;'}
+    }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': _YAML_CONFIG['Redis']['Location'],
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': _YAML_CONFIG['Redis']['KeyPrefix'],
     }
 }
 
@@ -128,6 +142,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+OSS_ENDPOINT = _YAML_CONFIG['OSS']['Endpoint']
+OSS_BUCKET_NAME = _YAML_CONFIG['OSS']['Bucket']
+OSS_ACCESS_KEY_ID = _YAML_CONFIG['OSS']['AccessKeyId']
+OSS_ACCESS_KEY_SECRET = _YAML_CONFIG['OSS']['AccessKeySecret']
+
+DEFAULT_FILE_STORAGE = 'django_oss_storage.backends.OssMediaStorage'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
