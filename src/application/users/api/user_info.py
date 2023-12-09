@@ -96,6 +96,7 @@ def signup_user(request: HttpRequest):
 def logout_user(request):
     # 登出用户
     logout(request)
+
     return success_api_response({'message': '登出成功'})
 
 

@@ -17,4 +17,9 @@ urlpatterns = [
 
     path('send-captcha', send_captcha),
     path('change-email', change_email),
+
+    path('subscribe', subscribe),
+    path('unsubscribe', unsubscribe),
+    path('get-subscribes', get_subscribes),
+    path('get-fans', get_fans),
 ]

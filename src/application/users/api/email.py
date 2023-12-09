@@ -15,12 +15,13 @@ from .. import *
 def send_email(request):
     # 获取数据
     email = request.POST.get('email')
+    content = request.POST.get('content')
     # 检查邮箱是否已存在
     if email and User.objects.filter(email=email).exists():
         # 生成token
         token = generate_token(email)
         # 发送邮件
-        send_mail()
+        send_mail(content, token, settings.EMAIL_HOST_USER, [email])
         return success_api_response({"message": "Email sent successfully."})
     else:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "邮箱不存在！")

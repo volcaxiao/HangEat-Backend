@@ -16,3 +16,8 @@ from .auth import refresh_token
 
 from .email import send_captcha
 from .email import change_email
+
+from .user_user import subscribe
+from .user_user import unsubscribe
+from .user_user import get_subscribes
+from .user_user import get_fans
