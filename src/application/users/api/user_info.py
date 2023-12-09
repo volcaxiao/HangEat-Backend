@@ -74,6 +74,8 @@ def signup_user(request: HttpRequest):
     # 检查用户名是否已存在
     if User.objects.filter(username=username).exists():
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '用户名已存在')
+    if username == 'default':
+        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '非法取名')
     if User.objects.filter(email=email).exists():
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "邮箱已注册")
     if password == '':
@@ -169,6 +171,8 @@ def update_user(request: HttpRequest):
     # 检查用户名是否已存在
     if username and User.objects.filter(username=username).exists():
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '用户名已存在')
+    elif username == 'default':
+        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '非法取名')
     elif username:
         user.username = username
 

@@ -46,8 +46,8 @@ INSTALLED_APPS = [
 
     # my apps
     'corsheaders',  # 跨域请求
-    'application.users',
     'application.restaurant',
+    'application.users',
 ]
 
 MIDDLEWARE = [

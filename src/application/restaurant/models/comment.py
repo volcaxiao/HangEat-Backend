@@ -9,8 +9,8 @@ class Comment(models.Model):
     comment_content = models.CharField(max_length=200)
     comment_time = models.DateTimeField(auto_now_add=True)
 
-    below_post = models.ForeignKey('Post', on_delete=models.CASCADE)
-    comment_user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    refer_post = models.ForeignKey('Post', on_delete=models.CASCADE)
+    author = models.ForeignKey('users.User', on_delete=models.CASCADE)
 
     reply_comment = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
 

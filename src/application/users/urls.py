@@ -22,4 +22,5 @@ urlpatterns = [
     path('unsubscribe', unsubscribe),
     path('get-subscribes', get_subscribes),
     path('get-fans', get_fans),
+
 ]
