@@ -16,7 +16,7 @@ def byte2str(b):
     return b.decode('utf-8')
 
 
-def get_user(request):
+def get_user(request) -> User:
     header = request.META.get('HTTP_AUTHORIZATION')
     try:
         if header is None:
@@ -31,13 +31,14 @@ def get_user(request):
 
         if auth_type != 'Bearer':
             raise jwt.InvalidTokenError
-
-        payload = jwt.decode(auth_token, settings.SECRET_KEY, algorithms=['HS256'])
+        payload = jwt.decode(auth_token, key=settings.SECRET_KEY, algorithms=['HS256'])
 
         if payload['type'] != 'access_token':
             raise jwt.InvalidTokenError
         user_id = payload['user_id']
         user = User.objects.filter(id=user_id).first()
+        if user is None:
+            raise jwt.InvalidTokenError
         return user
     except jwt.InvalidTokenError:
         return None
@@ -52,6 +53,7 @@ def generate_token(user: User, access_token_delta: int = 1) -> str:
     """
 
     current_time = timezone.now()
+    print(current_time)
     access_token_payload = {
         "user_id": user.id,
         "exp": current_time + timedelta(hours=access_token_delta),
@@ -107,8 +109,13 @@ def refresh_token(request):
         auth_type, auth_token = auth_info
         if auth_type != 'Bearer':
             raise jwt.InvalidTokenError
+        print(auth_token)
+        try:
+            payload = jwt.decode(auth_token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.InvalidTokenError:
+            print('InvalidTokenError')
+            raise jwt.InvalidTokenError
 
-        payload = jwt.decode(auth_token, settings.SECRET_KEY, algorithms=['HS256'])
         if payload['type'] != 'refresh_token':
             raise jwt.InvalidTokenError
 

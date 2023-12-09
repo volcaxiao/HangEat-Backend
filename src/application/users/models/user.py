@@ -3,6 +3,7 @@
 """
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.conf import settings
 
 
 class User(AbstractUser):
@@ -20,14 +21,14 @@ class User(AbstractUser):
     avatar = models.ImageField(upload_to='avatar/', default='avatar/default.png', verbose_name='头像')
     date_joined = models.DateTimeField(auto_now_add=True, verbose_name='注册时间')
     last_login = models.DateTimeField(auto_now=True, verbose_name='最后登录时间')
-    last_ip = models.GenericIPAddressField(verbose_name='最后登录IP')
+    last_ip = models.GenericIPAddressField(verbose_name='最后登录IP', blank=True, null=True)
 
     subscribes = models.ManyToManyField('self', symmetrical=False, related_name='subscribed_by')
     send_messages = models.ManyToManyField('self', symmetrical=False, related_name='received_by', through='Message')
     collections = models.ManyToManyField('restaurant.Restaurant', related_name='collected_by')
 
     def get_avatar_url(self):
-        return str(self.avatar)
+        return settings.OSS_MEDIA_URL + str(self.avatar)
 
     def __str__(self):
         return self.username

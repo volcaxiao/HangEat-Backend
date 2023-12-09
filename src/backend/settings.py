@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 import yaml
+import django
+from django.utils.encoding import force_str
+django.utils.encoding.force_text = force_str
+
 
 with open('config.yaml', 'r') as stream:
     _YAML_CONFIG = yaml.safe_load(stream)
@@ -146,6 +150,8 @@ OSS_ENDPOINT = _YAML_CONFIG['OSS']['Endpoint']
 OSS_BUCKET_NAME = _YAML_CONFIG['OSS']['Bucket']
 OSS_ACCESS_KEY_ID = _YAML_CONFIG['OSS']['AccessKeyId']
 OSS_ACCESS_KEY_SECRET = _YAML_CONFIG['OSS']['AccessKeySecret']
+
+OSS_MEDIA_URL = 'https://' + OSS_BUCKET_NAME + '.' + OSS_ENDPOINT + '/' + MEDIA_URL
 
 DEFAULT_FILE_STORAGE = 'django_oss_storage.backends.OssMediaStorage'
 # Default primary key field type

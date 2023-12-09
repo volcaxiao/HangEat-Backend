@@ -12,6 +12,7 @@
 """
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import make_password
+from django.http import HttpRequest
 from django.views.decorators.http import require_POST, require_GET, require_http_methods
 from .. import *
 from .auth import generate_token, generate_refresh_token, jwt_auth
@@ -21,7 +22,7 @@ from ..models import User
 
 @response_wrapper
 @require_POST
-def login_user(request):
+def login_user(request: HttpRequest):
     username = request.POST.get('username')
     password = request.POST.get('password')
 
@@ -46,7 +47,7 @@ def login_user(request):
             ip = request.META['HTTP_X_FORWARDED_FOR']
         else:
             ip = request.META['REMOTE_ADDR']
-        user.last_login_ip = ip
+        user.last_ip = ip
         return success_api_response({'message': '登录成功',
                                      'token': token,
                                      'refresh_token': refresh_token})
@@ -60,7 +61,7 @@ def login_user(request):
 
 @response_wrapper
 @require_POST
-def signup_user(request):
+def signup_user(request: HttpRequest):
     username = request.POST.get('username')
     password = request.POST.get('password')
     email = request.POST.get('email')
@@ -84,7 +85,7 @@ def signup_user(request):
     else:
         ip = request.META['REMOTE_ADDR']
     # 创建新用户
-    User.objects.create_user(username=username, email=email, password=password, last_login_ip=ip)
+    User.objects.create_user(username=username, email=email, password=password, last_ip=ip)
 
     return success_api_response({'message': '注册成功'})
 
@@ -101,7 +102,7 @@ def logout_user(request):
 @response_wrapper
 @jwt_auth()
 @require_http_methods(['DELETE'])
-def delete_user(request):
+def delete_user(request: HttpRequest):
     # 获取用户
     user = request.user
     # 删除用户
@@ -115,7 +116,7 @@ def delete_user(request):
 @response_wrapper
 @jwt_auth()
 @require_POST
-def change_password(request):
+def change_password(request: HttpRequest):
     old_password = request.POST.get('old_password')
     new_password = request.POST.get('new_password')
 
@@ -133,7 +134,7 @@ def change_password(request):
 
 @response_wrapper
 @require_POST
-def forget_password(request):
+def forget_password(request: HttpRequest):
     email = request.POST.get('email')
     captcha = request.POST.get('captcha')
     new_password = request.POST.get('password')
@@ -152,7 +153,7 @@ def forget_password(request):
 @response_wrapper
 @jwt_auth()
 @require_http_methods(['PUT'])
-def update_user(request):
+def update_user(request: HttpRequest):
     """
     更新用户信息:
         1. 更新用户名
@@ -161,8 +162,8 @@ def update_user(request):
     # 获取用户
     user = request.user
     # 获取数据
-    username = request.PUT.get('username')
-    motto = request.PUT.get('motto')
+    username = request.POST.get('username')
+    motto = request.POST.get('motto')
 
     # 检查用户名是否已存在
     if username and User.objects.filter(username=username).exists():
@@ -182,7 +183,7 @@ def update_user(request):
 @response_wrapper
 @jwt_auth()
 @require_http_methods(['PUT'])
-def update_avatar(request):
+def update_avatar(request: HttpRequest):
     # 获取用户
     user = request.user
     # 获取数据
@@ -206,7 +207,7 @@ def update_avatar(request):
 @response_wrapper
 @jwt_auth()
 @require_GET
-def get_user_info(request):
+def get_user_info(request: HttpRequest):
     user = request.user
     return success_api_response({
         "username": user.username,
