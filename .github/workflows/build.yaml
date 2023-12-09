@@ -1,5 +1,4 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+# This workflow will do a clean installation of python packages.
 
 name: Build django App
 
@@ -14,7 +13,11 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
-      - run: rsync -arv --delete --exclude="venv" --exclude="config.yaml" . /Users/hangeat/Public/backend
-      - run: cd /Users/hangeat/Public/backend
+      - name: rsync
+        run: rsync -arv --delete --exclude=".git" --exclude="venv" --exclude="config.yaml" --exclude="__pycache__" . /Users/hangeat/Public/backend
+      - name: pip install requirements
+        run: cd /Users/hangeat/Public/backend
           && source venv/bin/activate
           && pip install -r requirements.txt
+      - name: restart service
+        run: launchctl kickstart -k system/cn.cpolar.hang-eat
