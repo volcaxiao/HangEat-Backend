@@ -19,7 +19,7 @@ class Restaurant(models.Model):
     tags = models.ManyToManyField('Tag')
 
     def get_img_url(self):
-        return settings.OSS_MEDIA_URL + self.img
+        return settings.OSS_MEDIA_URL + str(self.img)
 
     def __str__(self):
         return self.name

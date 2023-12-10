@@ -2,6 +2,8 @@ from .restart_info import creat_restaurant
 from .restart_info import get_restaurant_detail
 from .restart_info import get_restaurant_num
 from .restart_info import get_restaurant_list
+from .restart_info import get_restaurant_num_by_creater
+from .restart_info import get_restaurant_list_by_creater
 from .restart_info import edit_restaurant
 from .restart_info import delete_restaurant
 

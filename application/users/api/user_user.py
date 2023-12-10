@@ -71,6 +71,8 @@ def get_subscribes(request):
     subscribes_cnt = subscribes.count()
     left = max(0, min(left, right, subscribes_cnt))
     right = min(subscribes_cnt, max(left, right))
+    print(left, right)
+    print(subscribes)
     subscribes = subscribes[left:right]
     data = {"subscribes_cnt": subscribes_cnt,
             'query_cnt': right - left}

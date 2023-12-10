@@ -28,7 +28,7 @@ from application.users.api.auth import jwt_auth
 #         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "无权限！")
 #
 #     for tag_name in tag_name_list:
-#         tag = Tag(tag_name=tag_name, creater=creater)
+#         tag = Tag(name=tag_name, creater=creater)
 #         tag.save()
 #         target.tags.add(tag)
 #
@@ -49,10 +49,10 @@ def refer_tag(request):
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "无权限！")
 
     for tag_name in tag_name_list:
-        tag = Tag.objects.filter(tag_name=tag_name).first()
+        tag = Tag.objects.filter(name=tag_name).first()
         # 如果tag不存在，就创建一个
         if tag is None:
-            tag = Tag(tag_name=tag_name, creater=creater)
+            tag = Tag(name=tag_name, creater=creater)
             tag.save()
         target.tags.add(tag)
 
@@ -63,10 +63,10 @@ def refer_tag(request):
 @jwt_auth()
 @require_http_methods(['DELETE'])
 def delete_tag(request: HttpRequest):
-    target_id = request.POST.get('target_id')
-    tag_name = request.POST.get('tag')
+    target_id = request.GET.get('target_id')
+    tag_name = request.GET.get('tag')
     target = Restaurant.objects.filter(id=target_id).first()
-    tag = Tag.objects.filter(tag_name=tag_name).first()
+    tag = Tag.objects.filter(name=tag_name).first()
     if target is None:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "餐厅不存在！")
     if tag is None:
@@ -106,7 +106,7 @@ def get_tag_list(request: HttpRequest):
             'list': []
             }
     for tag in tag_list:
-        data.get('list').append({'name': tag.tag_name})
+        data.get('list').append({'name': tag.name})
     return success_api_response(data)
 
 
@@ -115,7 +115,7 @@ def get_tag_list(request: HttpRequest):
 @require_GET
 def get_restaurant_num_by_tag(request: HttpRequest):
     query_tags = request.GET.getlist('tags')
-    tags = Tag.objects.filter(tag_name__in=query_tags)
+    tags = Tag.objects.filter(name__in=query_tags)
     restaurant_list = Restaurant.objects.filter(tags__in=tags).distinct()
     return success_api_response({'restaurant_num': restaurant_list.count()})
 
@@ -125,7 +125,7 @@ def get_restaurant_num_by_tag(request: HttpRequest):
 @require_GET
 def get_restaurant_list_by_tag(request: HttpRequest):
     query_tags = request.GET.getlist('tags')
-    tags = Tag.objects.filter(tag_name__in=query_tags)
+    tags = Tag.objects.filter(name__in=query_tags)
     restaurant_list = Restaurant.objects.filter(tags__in=tags).distinct()
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
@@ -147,7 +147,7 @@ def get_restaurant_list_by_tag(request: HttpRequest):
                          }
         tags_name = []
         for tag in restart.tags:
-            tags_name.append(tag.tag_name)
+            tags_name.append(tag.name)
         restart_intro.update({'tags': tags_name})
         data.get('list').append(restart_intro)
     return success_api_response(data)

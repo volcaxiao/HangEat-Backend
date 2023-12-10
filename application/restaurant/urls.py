@@ -4,11 +4,13 @@ from .api import *
 
 urlpatterns = [
     path('create-resturant', creat_restaurant),
-    path('get-resturant-detail/<int:restart_id>', get_restaurant_detail),
-    path('get-resturant-num', get_restaurant_num),
-    path('get-resturant-list', get_restaurant_list),
-    path('edit-resturant/<int:restart_id>', edit_restaurant),
-    path('delete-resturant/<int:restart_id>', delete_restaurant),
+    path('get-restaurant-detail/<int:restart_id>', get_restaurant_detail),
+    path('get-restaurant-num', get_restaurant_num),
+    path('get-restaurant-list', get_restaurant_list),
+    path('get-restarant-num-by-creater', get_restaurant_num_by_creater),
+    path('get-restaurant-list-by-creater', get_restaurant_list_by_creater),
+    path('edit-restaurant/<int:restart_id>', edit_restaurant),
+    path('delete-restaurant/<int:restart_id>', delete_restaurant),
 
     # path('create-tag', create_tag),
     path('refer-tag', refer_tag),
