@@ -49,6 +49,7 @@ def login_user(request: HttpRequest):
             ip = request.META['REMOTE_ADDR']
         user.last_ip = ip
         return success_api_response({'message': '登录成功',
+                                     'username': user.username,
                                      'token': token,
                                      'refresh_token': refresh_token})
     elif User.objects.filter(username=username).exists():
@@ -212,9 +213,10 @@ def update_avatar(request: HttpRequest):
 @response_wrapper
 @jwt_auth()
 @require_GET
-def get_user_info(request: HttpRequest):
+def get_user_info(request):
     user = request.user
     return success_api_response({
+        "id": user.id,
         "username": user.username,
         "email": user.email,
         "avatar": user.get_avatar_url(),

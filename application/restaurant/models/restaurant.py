@@ -7,10 +7,9 @@ from django.conf import settings
 
 
 class Restaurant(models.Model):
-    id = models.UUIDField(primary_key=True)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=200)
-    address = models.ForeignKey('Address', on_delete=models.CASCADE)
+    address = models.ForeignKey('Address', on_delete=models.CASCADE, null=True)
     detail_addr = models.CharField(max_length=200, null=True, blank=True)
     phone = models.CharField(max_length=20, null=True, blank=True)
     img = models.ImageField(upload_to='restaurant/', default='restaurant/default.png', verbose_name='店铺图像')

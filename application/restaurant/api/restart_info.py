@@ -10,7 +10,7 @@ from django.http import HttpRequest
 from django.views.decorators.http import require_POST, require_GET, require_http_methods
 from .. import *
 from ..models import Restaurant
-from src.application.users.api.auth import jwt_auth
+from application.users.api.auth import jwt_auth
 
 
 @response_wrapper
@@ -19,17 +19,25 @@ from src.application.users.api.auth import jwt_auth
 def creat_restaurant(request):
     user = request.user
     name = request.POST.get('name')
-    detail_addr = request.POST.get('address')
-    phone = request.POST.get('phone')
-    img = request.FILES.getlist('avatar')[0]
     if Restaurant.objects.filter(name=name).exists():
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "餐厅已存在！")
-    if img.size > 1024 * 1024 * 2:
-        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "图片大小不能超过2MB")
-    if name == 'default':
-        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "非法取名")
-    img.name = name + '.png'
-    Restaurant.objects.create(name=name, phone=phone, detail_addr=detail_addr, img=img, creater=user)
+
+    detail_addr = request.POST.get('address')
+    restart = Restaurant(name=name, creater=user, detail_addr=detail_addr)
+
+    phone = request.POST.get('phone')
+    if phone is not None:
+        restart.phone = phone
+
+    img = request.FILES.getlist('avatar')[0] if len(request.FILES.getlist('avatar')) > 0 else None
+    if img is not None:
+        if img.size > 1024 * 1024 * 2:
+            return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "图片大小不能超过2MB")
+        if name == 'default':
+            return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "非法取名")
+        img.name = name + '.png'
+        restart.img = img
+    restart.save()
     return success_api_response({"message": "创建成功！"})
 
 
@@ -57,9 +65,24 @@ def get_restaurant_detail(request: HttpRequest, restart_id: int):
 @response_wrapper
 @jwt_auth()
 @require_GET
+def get_restaurant_num(request: HttpRequest):
+    restart_cnt = Restaurant.objects.count()
+    return success_api_response({'restaurant_num': restart_cnt})
+
+
+@response_wrapper
+@jwt_auth()
+@require_GET
 def get_restaurant_list(request):
     restart_cnt = Restaurant.objects.count()
     restart_all = Restaurant.objects.all()
+    left = int(request.GET.get('from'))
+    right = int(request.GET.get('to'))
+    left = max(0, min(left, right, restart_cnt))
+    right = min(restart_cnt, max(left, right))
+    restart_all = restart_all[left:right]
+    data = {"restaurant_num": restart_cnt,
+            'query_cnt': right - left}
     restart_list = []
     for restart in restart_all:
         restart_intro = {
@@ -73,7 +96,8 @@ def get_restaurant_list(request):
             tags_name.append(tag.tag_name)
         restart_intro.update({'tags': tags_name})
         restart_list.append(restart_intro)
-    return success_api_response({'list': restart_list})
+    data.update({'list': restart_list})
+    return success_api_response(data)
 
 
 @response_wrapper

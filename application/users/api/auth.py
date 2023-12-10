@@ -100,7 +100,6 @@ def generate_token(user: User, access_token_delta: int = 1) -> str:
     """
 
     current_time = timezone.now()
-    print(current_time)
     access_token_payload = {
         "user_id": user.id,
         "exp": current_time + timedelta(hours=access_token_delta),

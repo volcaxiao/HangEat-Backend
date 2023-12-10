@@ -26,7 +26,7 @@ def subscribe(request):
     target_user = User.objects.filter(id=target_id).first()
     if target_user is None:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "用户不存在！")
-    if target_user == user:
+    if int(target_id) == int(user.id):
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "不能关注自己！")
     if target_user in user.subscribes.all():
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "已关注！")
@@ -43,7 +43,7 @@ def unsubscribe(request):
     target_user = User.objects.filter(id=target_id).first()
     if target_user is None:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "用户不存在！")
-    if target_user == user:
+    if int(target_id) == int(user.id):
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "不能取关自己！")
     if target_user not in user.subscribes.all():
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "未关注！")
@@ -54,10 +54,26 @@ def unsubscribe(request):
 @response_wrapper
 @jwt_auth()
 @require_GET
-def get_subscribes(request):
+def get_subscribes_num(request):
     user = request.user
     subscribes = user.subscribes.all()
-    data = {"关注人数": subscribes.count()}
+    return success_api_response({"follower_num": subscribes.count()})
+
+
+@response_wrapper
+@jwt_auth()
+@require_GET
+def get_subscribes(request):
+    user = request.user
+    left = int(request.GET.get('from'))
+    right = int(request.GET.get('to'))
+    subscribes = user.subscribes.all()
+    subscribes_cnt = subscribes.count()
+    left = max(0, min(left, right, subscribes_cnt))
+    right = min(subscribes_cnt, max(left, right))
+    subscribes = subscribes[left:right]
+    data = {"subscribes_cnt": subscribes_cnt,
+            'query_cnt': right - left}
     for follow in subscribes:
         data.update({follow.username: {
             'id': follow.id,
@@ -65,8 +81,16 @@ def get_subscribes(request):
             'motto': follow.motto,
             'avatar': follow.get_avatar_url(),
         }})
-    print(data)
     return success_api_response(data)
+
+
+@response_wrapper
+@jwt_auth()
+@require_GET
+def get_fans_num(request):
+    user = request.user
+    fans = user.fans.all()
+    return success_api_response({"fans_num": fans.count()})
 
 
 @response_wrapper
@@ -74,8 +98,15 @@ def get_subscribes(request):
 @require_GET
 def get_fans(request):
     user = request.user
-    fans = user.subscribed_by.all()
-    data = {"粉丝人数": fans.count()}
+    left = int(request.GET.get('from'))
+    right = int(request.GET.get('to'))
+    fans = user.fans.all()
+    fans_cnt = fans.count()
+    left = max(0, min(left, right, fans_cnt))
+    right = min(fans_cnt, max(left, right))
+    fans = fans[left:right]
+    data = {"fans_num": fans_cnt,
+            'query_cnt': right - left}
     for fan in fans:
         data.update({fan.username: {
             'id': fan.id,

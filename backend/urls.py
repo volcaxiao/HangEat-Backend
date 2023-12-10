@@ -26,6 +26,7 @@ urlpatterns = [
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
     path('user/', include('application.users.urls')),
     path('square/', include('application.square.urls')),
+    path('restaurant/', include('application.restaurant.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
