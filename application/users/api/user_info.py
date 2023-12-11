@@ -207,7 +207,7 @@ def update_avatar(request: HttpRequest):
 
     # 更新用户
     user.save()
-    return success_api_response({"message": "更新成功", "url": user.get_avatar_url()})
+    return success_api_response({"message": "更新成功", "url": user.avatar.url})
 
 
 @response_wrapper
@@ -219,6 +219,6 @@ def get_user_info(request):
         "id": user.id,
         "username": user.username,
         "email": user.email,
-        "avatar": user.get_avatar_url(),
+        "avatar": user.avatar.url,
         "motto": user.motto
     })

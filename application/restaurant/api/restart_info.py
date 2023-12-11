@@ -48,17 +48,7 @@ def get_restaurant_detail(request: HttpRequest, restart_id: int):
     restart = Restaurant.objects.get(id=restart_id)
     if restart is None:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '餐馆不存在')
-    detail = {'name': restart.name,
-              'description': restart.description,
-              'detail_addr': restart.detail_addr,
-              'referrer': restart.creater.username,
-              'img_url': restart.get_img_url(),
-              'phone': restart.phone,
-              }
-    tags_name = []
-    for tag in restart.tags.all():
-        tags_name.append(tag.tag_name)
-    detail.update({'tags': tags_name})
+    detail = model_to_dict(restart)
     return success_api_response(detail)
 
 
@@ -74,29 +64,9 @@ def get_restaurant_num(request: HttpRequest):
 @jwt_auth()
 @require_GET
 def get_restaurant_list(request):
-    restart_cnt = Restaurant.objects.count()
-    restart_all = Restaurant.objects.all()
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
-    left = max(0, min(left, right, restart_cnt))
-    right = min(restart_cnt, max(left, right))
-    restart_all = restart_all[left:right]
-    data = {"restaurant_num": restart_cnt,
-            'query_cnt': right - left}
-    restart_list = []
-    for restart in restart_all:
-        restart_intro = {
-            'id': restart.id,
-            'name': restart.name,
-            'referer': restart.creater.username,
-            'img_url': restart.get_img_url()
-        }
-        tags_name = []
-        for tag in restart.tags.all():
-            tags_name.append(tag.tag_name)
-        restart_intro.update({'tags': tags_name})
-        restart_list.append(restart_intro)
-    data.update({'list': restart_list})
+    data = get_query_set_list(Restaurant.objects, left, right, ['id', 'name', 'img', 'creater', 'tags'])
     return success_api_response(data)
 
 
@@ -114,29 +84,9 @@ def get_restaurant_num_by_creater(request):
 @require_GET
 def get_restaurant_list_by_creater(request):
     creater_id = request.GET.get('creater_id')
-    restart_cnt = Restaurant.objects.filter(creater=creater_id).count()
-    restart_all = Restaurant.objects.filter(creater=creater_id)
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
-    left = max(0, min(left, right, restart_cnt))
-    right = min(restart_cnt, max(left, right))
-    restart_all = restart_all[left:right]
-    data = {"restaurant_num": restart_cnt,
-            'query_cnt': right - left}
-    restart_list = []
-    for restart in restart_all:
-        restart_intro = {
-            'id': restart.id,
-            'name': restart.name,
-            'referer': restart.creater.username,
-            'img_url': restart.get_img_url()
-        }
-        tags_name = []
-        for tag in restart.tags.all():
-            tags_name.append(tag.tag_name)
-        restart_intro.update({'tags': tags_name})
-        restart_list.append(restart_intro)
-    data.update({'list': restart_list})
+    data = get_query_set_list(Restaurant.objects.filter(creater_id=creater_id), left, right, ['id', 'name', 'img', 'creater', 'tags'])
     return success_api_response(data)
 
 

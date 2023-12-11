@@ -97,16 +97,7 @@ def get_tag_num(request: HttpRequest):
 def get_tag_list(request: HttpRequest):
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
-    tag_cnt = Tag.objects.count()
-    left = max(0, min(left, right, tag_cnt))
-    right = min(tag_cnt, max(left, right))
-    tag_list = Tag.objects.all()[left:right]
-    data = {'tag_num': tag_cnt,
-            'query_cnt': right - left,
-            'list': []
-            }
-    for tag in tag_list:
-        data.get('list').append({'name': tag.name})
+    data = get_query_set_list(Tag.objects, left, right, ['name'])
     return success_api_response(data)
 
 
@@ -129,26 +120,6 @@ def get_restaurant_list_by_tag(request: HttpRequest):
     restaurant_list = Restaurant.objects.filter(tags__in=tags).distinct()
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
-    restaurant_cnt = restaurant_list.count()
-    left = max(0, min(left, right, restaurant_cnt))
-    right = min(restaurant_cnt, max(left, right))
-    restaurant_list = restaurant_list[left:right]
-    data = {
-        'restaurant_num': restaurant_cnt,
-        'query_cnt': right - left,
-        'list': []
-    }
-    for restart in restaurant_list:
-        restart_intro = {'id': restart.id,
-                         'name': restart.name,
-                         'img_url': restart.get_img_url(),
-                         'phone': restart.phone,
-                         'referer': restart.creater.name,
-                         }
-        tags_name = []
-        for tag in restart.tags:
-            tags_name.append(tag.name)
-        restart_intro.update({'tags': tags_name})
-        data.get('list').append(restart_intro)
+    data = get_query_set_list(restaurant_list, left, right, ['id', 'name', 'img', 'creater', 'tags'])
     return success_api_response(data)
 

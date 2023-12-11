@@ -16,10 +16,7 @@ class Restaurant(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     creater = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True)
-    tags = models.ManyToManyField('Tag')
-
-    def get_img_url(self):
-        return settings.OSS_MEDIA_URL + str(self.img)
+    tags = models.ManyToManyField('Tag', related_name='restaurants', through='RestaurantTag')
 
     def __str__(self):
         return self.name

@@ -63,26 +63,11 @@ def get_subscribes_num(request):
 @response_wrapper
 @jwt_auth()
 @require_GET
-def get_subscribes(request):
+def get_subscribes_list(request):
     user = request.user
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
-    subscribes = user.subscribes.all()
-    subscribes_cnt = subscribes.count()
-    left = max(0, min(left, right, subscribes_cnt))
-    right = min(subscribes_cnt, max(left, right))
-    print(left, right)
-    print(subscribes)
-    subscribes = subscribes[left:right]
-    data = {"subscribes_cnt": subscribes_cnt,
-            'query_cnt': right - left}
-    for follow in subscribes:
-        data.update({follow.username: {
-            'id': follow.id,
-            'username': follow.username,
-            'motto': follow.motto,
-            'avatar': follow.get_avatar_url(),
-        }})
+    data = get_query_set_list(user.subscribes, left, right, ['id', 'username', 'motto', 'avatar'])
     return success_api_response(data)
 
 
@@ -98,24 +83,11 @@ def get_fans_num(request):
 @response_wrapper
 @jwt_auth()
 @require_GET
-def get_fans(request):
+def get_fans_list(request):
     user = request.user
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
-    fans = user.fans.all()
-    fans_cnt = fans.count()
-    left = max(0, min(left, right, fans_cnt))
-    right = min(fans_cnt, max(left, right))
-    fans = fans[left:right]
-    data = {"fans_num": fans_cnt,
-            'query_cnt': right - left}
-    for fan in fans:
-        data.update({fan.username: {
-            'id': fan.id,
-            'username': fan.username,
-            'motto': fan.motto,
-            'avatar': fan.get_avatar_url(),
-        }})
+    data = get_query_set_list(user.fans, left, right, ['id', 'username', 'motto', 'avatar'])
     return success_api_response(data)
 
 

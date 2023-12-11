@@ -27,9 +27,6 @@ class User(AbstractUser):
     send_messages = models.ManyToManyField('self', symmetrical=False, related_name='received_by', through='Message')
     collections = models.ManyToManyField('restaurant.Restaurant', related_name='collectors', through='Collection')
 
-    def get_avatar_url(self):
-        return settings.OSS_MEDIA_URL + str(self.avatar)
-
     def __str__(self):
         return self.username
 

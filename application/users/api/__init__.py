@@ -20,6 +20,6 @@ from .email import change_email
 from .user_user import subscribe
 from .user_user import unsubscribe
 from .user_user import get_subscribes_num
-from .user_user import get_subscribes
+from .user_user import get_subscribes_list
 from .user_user import get_fans_num
-from .user_user import get_fans
+from .user_user import get_fans_list
