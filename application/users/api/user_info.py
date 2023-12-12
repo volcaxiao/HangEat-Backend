@@ -12,7 +12,7 @@
 """
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import make_password
-from django.http import HttpRequest
+from django.http import HttpRequest, QueryDict
 from django.views.decorators.http import require_POST, require_GET, require_http_methods
 from .. import *
 from .auth import generate_token, generate_refresh_token, jwt_auth
@@ -166,8 +166,9 @@ def update_user(request: HttpRequest):
     # 获取用户
     user = request.user
     # 获取数据
-    username = request.POST.get('username')
-    motto = request.POST.get('motto')
+    put = QueryDict(request.body)
+    username = put.get('username')
+    motto = put.get('motto')
 
     # 检查用户名是否已存在
     if username and User.objects.filter(username=username).exists():
@@ -188,7 +189,7 @@ def update_user(request: HttpRequest):
 
 @response_wrapper
 @jwt_auth()
-@require_http_methods(['PUT'])
+@require_POST
 def update_avatar(request: HttpRequest):
     # 获取用户
     user = request.user
