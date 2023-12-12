@@ -223,3 +223,19 @@ def get_user_info(request):
         "avatar": user.avatar.url,
         "motto": user.motto
     })
+
+
+@response_wrapper
+@jwt_auth()
+@require_GET
+def get_user_info_by_id(request: HttpRequest, user_id: int):
+    target_user = User.objects.filter(id=user_id).first()
+    if target_user is None:
+        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "用户不存在！")
+    return success_api_response({
+        "id": target_user.id,
+        "username": target_user.username,
+        "email": target_user.email,
+        "avatar": target_user.avatar.url,
+        "motto": target_user.motto
+    })

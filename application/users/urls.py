@@ -12,6 +12,7 @@ urlpatterns = [
     path('change-password', change_password),
     path('forget-password', forget_password),
     path('get-user-info', get_user_info),
+    path('get-user-info/<int:user_id>', get_user_info_by_id),
 
     path('refresh-token', refresh_token),
 

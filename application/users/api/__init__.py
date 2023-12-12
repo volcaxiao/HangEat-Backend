@@ -11,6 +11,7 @@ from .user_info import update_avatar
 from .user_info import change_password
 from .user_info import forget_password
 from .user_info import get_user_info
+from .user_info import get_user_info_by_id
 
 from .auth import refresh_token
 
