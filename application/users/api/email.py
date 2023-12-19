@@ -14,8 +14,9 @@ from .. import *
 @require_POST
 def send_email(request):
     # 获取数据
-    email = request.POST.get('email')
-    content = request.POST.get('content')
+    post_data = parse_data(request)
+    email = post_data.get('email')
+    content = post_data.get('content')
     # 检查邮箱是否已存在
     if email and User.objects.filter(email=email).exists():
         # 生成token
@@ -35,7 +36,8 @@ def varify_captcha(email, captcha):
 @response_wrapper
 @require_POST
 def send_captcha(request):
-    email = request.POST.get('email')
+    post_data = parse_data(request)
+    email = post_data.get('email')
     captcha = '%06d' % random.randint(0, 999999)
     email_title = 'HangEat 验证码'
     email_body = '您的验证码为：' + captcha + '，请在5分钟内输入。'
@@ -51,9 +53,9 @@ def send_captcha(request):
 @jwt_auth()
 @require_POST
 def change_email(request):
-    new_email = request.POST.get('email')
-    captcha = request.POST.get('captcha')
-    print(new_email, captcha)
+    post_data = parse_data(request)
+    new_email = post_data.get('email')
+    captcha = post_data.get('captcha')
     if User.objects.filter(email=new_email).exists():
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "邮箱已注册")
     if varify_captcha(new_email, captcha):

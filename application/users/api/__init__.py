@@ -20,7 +20,8 @@ from .email import change_email
 
 from .user_user import subscribe
 from .user_user import unsubscribe
-from .user_user import get_subscribes_num
-from .user_user import get_subscribes_list
-from .user_user import get_fans_num
-from .user_user import get_fans_list
+from .user_user import get_subscriptions_num
+from .user_user import get_subscriptions_list
+from .user_user import get_subscribers_num
+from .user_user import get_subscribers_list
+from .user_user import get_relation_between

@@ -28,7 +28,6 @@ def refresh_token(request):
         auth_type, auth_token = auth_info
         if auth_type != 'Bearer':
             raise jwt.InvalidTokenError
-        print(auth_token)
         try:
             payload = jwt.decode(auth_token, settings.SECRET_KEY, algorithms=['HS256'])
         except jwt.InvalidTokenError:
@@ -142,7 +141,7 @@ def jwt_auth():
         def wrapper(request, *args, **kwargs):
             user = get_user(request)
             request.user = user
-            if user is None:
+            if user is None or user.isDelete:
                 return failed_api_response(ErrorCode.UNAUTHORIZED_ERROR, '未登录')
             return api(request, *args, **kwargs)
 

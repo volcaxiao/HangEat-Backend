@@ -1,6 +1,5 @@
 """
 关于餐馆和tag的api
-    1. 创建tag（）
     2. 创建或附加tag
     3. 去除联系
     4. 获取所有tag
@@ -14,45 +13,25 @@ from ..models import Tag
 from application.users.api.auth import jwt_auth
 
 
-# @response_wrapper
-# @jwt_auth()
-# @require_POST
-# def create_tag(request: HttpRequest):
-#     target_id = request.POST.get('target_id')
-#     tag_name_list = request.POST.get('tags')
-#     target = Restaurant.objects.filter(id=target_id).first()
-#     creater = request.user
-#     if target is None:
-#         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "餐厅不存在！")
-#     if target.creater != request.user:
-#         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "无权限！")
-#
-#     for tag_name in tag_name_list:
-#         tag = Tag(name=tag_name, creater=creater)
-#         tag.save()
-#         target.tags.add(tag)
-#
-#     return success_api_response({'message': '创建成功'})
-
-
 @response_wrapper
 @jwt_auth()
 @require_POST
 def refer_tag(request):
-    target_id = request.POST.get('target_id')
-    tag_name_list = request.POST.getlist('tags')
+    post_data = parse_data(request)
+    target_id = post_data.get('target_id')
+    tag_name_list = post_data.get('tags')
     target = Restaurant.objects.filter(id=target_id).first()
-    creater = request.user
+    creator = request.user
     if target is None:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "餐厅不存在！")
-    if target.creater != request.user:
+    if target.creator != request.user:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "无权限！")
 
     for tag_name in tag_name_list:
         tag = Tag.objects.filter(name=tag_name).first()
         # 如果tag不存在，就创建一个
         if tag is None:
-            tag = Tag(name=tag_name, creater=creater)
+            tag = Tag(name=tag_name, creator=creator)
             tag.save()
         target.tags.add(tag)
 
@@ -63,15 +42,16 @@ def refer_tag(request):
 @jwt_auth()
 @require_http_methods(['DELETE'])
 def delete_tag(request: HttpRequest):
-    target_id = request.GET.get('target_id')
-    tag_name = request.GET.get('tag')
+    delete_data = parse_data(request)
+    target_id = delete_data.get('target_id')
+    tag_name = delete_data.get('tag_name')
     target = Restaurant.objects.filter(id=target_id).first()
     tag = Tag.objects.filter(name=tag_name).first()
     if target is None:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "餐厅不存在！")
     if tag is None:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "标签不存在！")
-    if target.creater != request.user:
+    if target.creator != request.user:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "无权限！")
 
     target.tags.remove(tag)
@@ -84,7 +64,6 @@ def delete_tag(request: HttpRequest):
 
 
 @response_wrapper
-@jwt_auth()
 @require_GET
 def get_tag_num(request: HttpRequest):
     tag_cnt = Tag.objects.count()
@@ -92,7 +71,6 @@ def get_tag_num(request: HttpRequest):
 
 
 @response_wrapper
-@jwt_auth()
 @require_GET
 def get_tag_list(request: HttpRequest):
     left = int(request.GET.get('from'))
@@ -102,7 +80,6 @@ def get_tag_list(request: HttpRequest):
 
 
 @response_wrapper
-@jwt_auth()
 @require_GET
 def get_restaurant_num_by_tag(request: HttpRequest):
     query_tags = request.GET.getlist('tags')
@@ -112,7 +89,6 @@ def get_restaurant_num_by_tag(request: HttpRequest):
 
 
 @response_wrapper
-@jwt_auth()
 @require_GET
 def get_restaurant_list_by_tag(request: HttpRequest):
     query_tags = request.GET.getlist('tags')
@@ -120,6 +96,6 @@ def get_restaurant_list_by_tag(request: HttpRequest):
     restaurant_list = Restaurant.objects.filter(tags__in=tags).distinct()
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
-    data = get_query_set_list(restaurant_list, left, right, ['id', 'name', 'img', 'creater', 'tags'])
+    data = get_query_set_list(restaurant_list, left, right, ['id', 'name', 'img', 'creator', 'tags'])
     return success_api_response(data)
 

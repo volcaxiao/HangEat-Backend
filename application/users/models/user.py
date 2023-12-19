@@ -23,9 +23,11 @@ class User(AbstractUser):
     last_login = models.DateTimeField(auto_now=True, verbose_name='最后登录时间')
     last_ip = models.GenericIPAddressField(verbose_name='最后登录IP', blank=True, null=True)
 
-    subscribes = models.ManyToManyField('self', symmetrical=False, related_name='fans', through='Subscribe')
+    subscriptions = models.ManyToManyField('self', symmetrical=False, related_name='subscribers', through='Subscribe')
     send_messages = models.ManyToManyField('self', symmetrical=False, related_name='received_by', through='Message')
     collections = models.ManyToManyField('restaurant.Restaurant', related_name='collectors', through='Collection')
+
+    isDelete = models.BooleanField(default=False)
 
     def __str__(self):
         return self.username

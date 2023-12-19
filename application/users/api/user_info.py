@@ -17,15 +17,17 @@ from django.views.decorators.http import require_POST, require_GET, require_http
 from .. import *
 from .auth import generate_token, generate_refresh_token, jwt_auth
 from .email import varify_captcha
-from ..models import User
+from ..models import User, AuthRecord
+
+name_not_allow = ['default', 'delete']
 
 
 @response_wrapper
 @require_POST
 def login_user(request: HttpRequest):
-    username = request.POST.get('username')
-    password = request.POST.get('password')
-
+    post_data = parse_data(request)
+    username = post_data.get('username')
+    password = post_data.get('password')
     # 使用Django的authenticate函数验证用户名和密码
     user = authenticate(username=username, password=password)
 
@@ -37,7 +39,7 @@ def login_user(request: HttpRequest):
         username = tmp_user.username
         user = authenticate(username=username, password=password)
 
-    if user is not None:
+    if user is not None and not user.isDelete:
         # 登录成功
         login(request, user)
         # 生成token
@@ -63,10 +65,11 @@ def login_user(request: HttpRequest):
 @response_wrapper
 @require_POST
 def signup_user(request: HttpRequest):
-    username = request.POST.get('username')
-    password = request.POST.get('password')
-    email = request.POST.get('email')
-    captcha = request.POST.get('captcha')
+    post_data = parse_data(request)
+    username = post_data.get('username')
+    password = post_data.get('password')
+    email = post_data.get('email')
+    captcha = post_data.get('captcha')
 
     # 检查是否有字段为空
     if username is None or password is None or email is None:
@@ -75,7 +78,7 @@ def signup_user(request: HttpRequest):
     # 检查用户名是否已存在
     if User.objects.filter(username=username).exists():
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '用户名已存在')
-    if username == 'default':
+    if username in name_not_allow:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '非法取名')
     if User.objects.filter(email=email).exists():
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "邮箱已注册")
@@ -113,7 +116,13 @@ def delete_user(request: HttpRequest):
     if user.avatar.name != 'avatar/default.jpg':
         user.avatar.delete()
     logout(request)
-    user.delete()
+    user.username = "default"
+    user.avatar.name = 'avatar/delete.png'
+    user.motto = "该用户已注销"
+    user.isDelete = True
+    user.email.delete()
+    user.save()
+    AuthRecord.objects.filter(user=user).delete()
     return success_api_response({'message': '注销成功'})
 
 
@@ -121,8 +130,9 @@ def delete_user(request: HttpRequest):
 @jwt_auth()
 @require_POST
 def change_password(request: HttpRequest):
-    old_password = request.POST.get('old_password')
-    new_password = request.POST.get('new_password')
+    post_data = parse_data(request)
+    old_password = post_data.get('old_password')
+    new_password = post_data.get('new_password')
 
     # 使用Django的authenticate函数验证用户名和密码
     user = authenticate(username=request.user.username, password=old_password)
@@ -139,9 +149,10 @@ def change_password(request: HttpRequest):
 @response_wrapper
 @require_POST
 def forget_password(request: HttpRequest):
-    email = request.POST.get('email')
-    captcha = request.POST.get('captcha')
-    new_password = request.POST.get('password')
+    post_data = parse_data(request)
+    email = post_data.get('email')
+    captcha = post_data.get('captcha')
+    new_password = post_data.get('password')
     user = User.objects.filter(email=email).first()
     print(user, email, captcha, new_password)
     if user is None:
@@ -166,14 +177,14 @@ def update_user(request: HttpRequest):
     # 获取用户
     user = request.user
     # 获取数据
-    put = QueryDict(request.body)
-    username = put.get('username')
-    motto = put.get('motto')
+    put_data = parse_data(request)
+    username = put_data.get('username')
+    motto = put_data.get('motto')
 
     # 检查用户名是否已存在
     if username and User.objects.filter(username=username).exists():
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '用户名已存在')
-    elif username == 'default':
+    elif username in name_not_allow:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '非法取名')
     elif username:
         user.username = username
@@ -194,7 +205,7 @@ def update_avatar(request: HttpRequest):
     # 获取用户
     user = request.user
     # 获取数据
-    avatar = request.FILES.getlist('avatar')[0]
+    avatar = request.FILES.getlist('avatar')[0] if len(request.FILES.getlist('avatar')) > 0 else None
 
     if avatar:
         if avatar.size > 1024 * 1024 * 2:
@@ -216,26 +227,33 @@ def update_avatar(request: HttpRequest):
 @require_GET
 def get_user_info(request):
     user = request.user
+    subscriptions_num = user.subscriptions.all().count()
+    subscribers_num = user.subscribers.all().count()
     return success_api_response({
         "id": user.id,
         "username": user.username,
         "email": user.email,
         "avatar": user.avatar.url,
-        "motto": user.motto
+        "motto": user.motto,
+        "subscriptions_num": subscriptions_num,
+        "subscribers_num": subscribers_num
     })
 
 
 @response_wrapper
-@jwt_auth()
 @require_GET
 def get_user_info_by_id(request: HttpRequest, user_id: int):
     target_user = User.objects.filter(id=user_id).first()
     if target_user is None:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "用户不存在！")
+    subscriptions_num = target_user.subscriptions.all().count()
+    subscribers_num = target_user.subscribers.all().count()
     return success_api_response({
         "id": target_user.id,
         "username": target_user.username,
         "email": target_user.email,
         "avatar": target_user.avatar.url,
-        "motto": target_user.motto
+        "motto": target_user.motto,
+        "subscriptions_num": subscriptions_num,
+        "subscribers_num": subscribers_num
     })

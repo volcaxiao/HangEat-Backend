@@ -13,7 +13,7 @@ from django.http import HttpRequest
 from .. import *
 from .auth import jwt_auth
 from django.views.decorators.http import require_POST, require_GET, require_http_methods
-from ..models import User
+from ..models import User, Subscribe
 from ..models import Message
 
 
@@ -22,15 +22,16 @@ from ..models import Message
 @require_POST
 def subscribe(request):
     user = request.user
-    target_id = request.POST.get('target_id')
+    post_data = parse_data(request)
+    target_id = post_data.get('target_id')
     target_user = User.objects.filter(id=target_id).first()
     if target_user is None:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "用户不存在！")
     if int(target_id) == int(user.id):
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "不能关注自己！")
-    if target_user in user.subscribes.all():
+    if target_user in user.subscriptions.all():
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "已关注！")
-    user.subscribes.add(target_user)
+    user.subscriptions.add(target_user)
     return success_api_response({"message": "关注成功！"})
 
 
@@ -39,71 +40,78 @@ def subscribe(request):
 @require_POST
 def unsubscribe(request):
     user = request.user
-    target_id = request.POST.get('target_id')
+    post_data = parse_data(request)
+    target_id = post_data.get('target_id')
     target_user = User.objects.filter(id=target_id).first()
     if target_user is None:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "用户不存在！")
     if int(target_id) == int(user.id):
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "不能取关自己！")
-    if target_user not in user.subscribes.all():
+    if target_user not in user.subscriptions.all():
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "未关注！")
-    user.subscribes.remove(target_user)
+    user.subscriptions.remove(target_user)
     return success_api_response({"message": "取关成功！"})
 
 
 @response_wrapper
 @jwt_auth()
 @require_GET
-def get_subscribes_num(request):
+def get_subscriptions_num(request):
     user = request.user
-    subscribes = user.subscribes.all()
-    return success_api_response({"follower_num": subscribes.count()})
+    subscribes = user.subscriptions.all()
+    return success_api_response({"subscriptions_num": subscribes.count()})
 
 
 @response_wrapper
 @jwt_auth()
 @require_GET
-def get_subscribes_list(request):
+def get_subscriptions_list(request):
     user = request.user
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
-    data = get_query_set_list(user.subscribes, left, right, ['id', 'username', 'motto', 'avatar'])
+    data = get_query_set_list(user.subscriptions, left, right, ['id', 'username', 'motto', 'avatar'])
+    for item in data['list']:
+        is_mutual = user.subscriptions.filter(id=item['id']).first().subscribers.filter(id=user.id).exists()
+        item['is_mutual'] = is_mutual
     return success_api_response(data)
 
 
 @response_wrapper
 @jwt_auth()
 @require_GET
-def get_fans_num(request):
+def get_subscribers_num(request):
     user = request.user
-    fans = user.fans.all()
-    return success_api_response({"fans_num": fans.count()})
+    fans = user.subscribers.all()
+    return success_api_response({"subscribers_num": fans.count()})
 
 
 @response_wrapper
 @jwt_auth()
 @require_GET
-def get_fans_list(request):
+def get_subscribers_list(request):
     user = request.user
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
-    data = get_query_set_list(user.fans, left, right, ['id', 'username', 'motto', 'avatar'])
+    data = get_query_set_list(user.subscribers, left, right, ['id', 'username', 'motto', 'avatar'])
+    for item in data['list']:
+        is_mutual = user.subscribers.filter(id=item['id']).first().subscriptions.filter(id=user.id).exists()
+        item['is_mutual'] = is_mutual
     return success_api_response(data)
 
 
-# @response_wrapper
-# @jwt_auth()
-# @require_POST
-# def send_message(request: HttpRequest):
-#     user = request.user
-#     target_id = request.POST.get('target_id')
-#     target_user = User.objects.filter(id=target_id).first()
-#     if target_user is None:
-#         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "用户不存在！")
-#     if target_user == user:
-#         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "不能给自己发消息！")
-#     message = request.POST.get('message')
-#     if message is None:
-#         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "消息不能为空！")
-#     message = Message.objects.create(sender=user, receiver=target_user, content=message)
-#     return success_api_response({"message": "发送成功！"})
+@response_wrapper
+@jwt_auth()
+@require_GET
+def get_relation_between(request: HttpRequest):
+    user1 = request.GET.get('user1')
+    user2 = request.GET.get('user2')
+
+    user1 = User.objects.filter(id=user1).first()
+    user2 = User.objects.filter(id=user2).first()
+
+    if user1 and user2:
+        res = {'1subscribe2': True if user1.subscriptions.filter(id=user2.id).exists() else False,
+               '2subscribe1': True if user2.subscriptions.filter(id=user1.id).exists() else False}
+        return success_api_response(res)
+
+    return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "用户不存在！")
