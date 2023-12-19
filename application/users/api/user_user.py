@@ -71,7 +71,7 @@ def get_subscriptions_list(request):
     right = int(request.GET.get('to'))
     data = get_query_set_list(user.subscriptions, left, right, ['id', 'username', 'motto', 'avatar'])
     for item in data['list']:
-        is_mutual = user.subscriptions.filter(id=item['id']).first().subscribers.filter(id=user.id).exists()
+        is_mutual = user.subscriptions.filter(id=item['id']).first().subscriptions.filter(id=user.id).exists()
         item['is_mutual'] = is_mutual
     return success_api_response(data)
 
@@ -94,7 +94,7 @@ def get_subscribers_list(request):
     right = int(request.GET.get('to'))
     data = get_query_set_list(user.subscribers, left, right, ['id', 'username', 'motto', 'avatar'])
     for item in data['list']:
-        is_mutual = user.subscribers.filter(id=item['id']).first().subscriptions.filter(id=user.id).exists()
+        is_mutual = user.subscribers.filter(id=item['id']).first().subscribers.filter(id=user.id).exists()
         item['is_mutual'] = is_mutual
     return success_api_response(data)
 

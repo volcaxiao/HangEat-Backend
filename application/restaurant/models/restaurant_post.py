@@ -12,7 +12,7 @@ class Post(models.Model):
     avg_price = models.IntegerField(default=0)
     image = models.ImageField(upload_to='post_image')
     restaurant = models.ForeignKey('Restaurant', on_delete=models.CASCADE)
-    user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    creator = models.ForeignKey('users.User', on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     agree = models.IntegerField(default=0)
 

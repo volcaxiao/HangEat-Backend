@@ -132,3 +132,26 @@ def delete_restaurant(request: HttpRequest, restart_id: int):
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '无权删除')
     restart.delete()
     return success_api_response({"message": "删除成功！"})
+
+
+@response_wrapper
+@require_GET
+def get_collectors_num(request: HttpRequest, restart_id: int):
+    target_restart = Restaurant.objects.filter(id=restart_id).first()
+    if target_restart is None:
+        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "餐厅不存在！")
+    collectors = target_restart.collectors.all()
+    return success_api_response({"collectors_num": collectors.count()})
+
+
+# @response_wrapper
+# @jwt_auth()
+# @require_GET
+# def get_collectors_list(request: HttpRequest, restart_id: int):
+#     target_restart = Restaurant.objects.filter(id=restart_id).first()
+#     if target_restart is None:
+#         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "餐厅不存在！")
+#     left = int(request.GET.get('left'))
+#     right = int(request.GET.get('right'))
+#     data = get_query_set_list(target_restart.collectors, left, right, ['id', 'username', 'motto', 'avatar'])
+#     return success_api_response(data)

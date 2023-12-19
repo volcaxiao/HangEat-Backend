@@ -1,10 +1,13 @@
 import json
+import uuid
 from itertools import chain
 
+from django.core.files.storage import get_storage_class
 from django.db import models
 from django.db.models import QuerySet
 from django.http import HttpRequest
-
+from django.conf import settings
+import oss2
 
 def parse_data(request: HttpRequest) -> dict:
     """Parse request body and generate python dict
@@ -89,3 +92,24 @@ def model_to_dict(instance, fields=None, exclude=None):
         else:
             data[f.name] = f.value_from_object(instance)
     return data
+
+
+def upload_img_file(image):
+    """
+    ！ 上传单张图片
+    :param image: b字节文件
+    :return: 若成功返回图片路径，若不成功返回空
+    """
+    # oss配置
+    auth = oss2
+    # 生成文件编号，如果文件名重复的话在oss中会覆盖之前的文件
+    number = uuid.uuid4()
+    # 生成文件名
+    base_img_name = 'assert/' + str(number) + '.jpg'
+    # 生成外网访问的文件路径
+    image_name = settings.OSS_MEDIA_URL + base_img_name
+    # 这个是阿里提供的SDK方法 bucket是调用的4.1中配置的变量名
+    # res = bucket.put_object(base_img_name, image)
+    storage = get_storage_class()()
+    storage.save(base_img_name, image)
+    return image_name

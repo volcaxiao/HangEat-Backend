@@ -26,4 +26,9 @@ urlpatterns = [
     path('get-subscribers-num', get_subscribers_num),
     path('get-subscribers-list', get_subscribers_list),
     path('get-relation-between', get_relation_between),
+
+    path('collect', collect_restart),
+    path('uncollect', uncollect_restart),
+    path('get-collections-num', get_collections_num),
+    path('get-collections-list', get_collections_list),
 ]

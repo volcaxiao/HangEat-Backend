@@ -154,7 +154,6 @@ def forget_password(request: HttpRequest):
     captcha = post_data.get('captcha')
     new_password = post_data.get('password')
     user = User.objects.filter(email=email).first()
-    print(user, email, captcha, new_password)
     if user is None:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "邮箱未注册")
     if varify_captcha(email, captcha):

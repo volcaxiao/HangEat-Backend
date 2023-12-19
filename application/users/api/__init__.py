@@ -25,3 +25,8 @@ from .user_user import get_subscriptions_list
 from .user_user import get_subscribers_num
 from .user_user import get_subscribers_list
 from .user_user import get_relation_between
+
+from .user_restart import collect_restart
+from .user_restart import uncollect_restart
+from .user_restart import get_collections_num
+from .user_restart import get_collections_list
