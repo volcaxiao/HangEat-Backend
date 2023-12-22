@@ -14,7 +14,7 @@ class Comment(models.Model):
 
     reply_to = models.ForeignKey('self', on_delete=models.CASCADE, null=True, related_name='replies')
 
-    agree = models.IntegerField(default=0)
+    agrees = models.ManyToManyField('users.User', related_name='agreedComments')
 
     def __str__(self):
         return self.comment_content

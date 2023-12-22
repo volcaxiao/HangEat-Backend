@@ -16,4 +16,19 @@ from .restart_tag import get_restaurant_list_by_tag
 
 from .restart_post import creat_post
 from .restart_post import upload_image
+from .restart_post import get_post_num
+from .restart_post import get_post_list
+from .restart_post import get_post_detail
+from .restart_post import agree_post
+from .restart_post import disagree_post
+from .restart_post import delete_post
+from .restart_post import update_post
+
 from .restart_post import creat_comment
+from .restart_post import get_comment_num
+from .restart_post import get_comment_list
+from .restart_post import agree_comment
+from .restart_post import disagree_comment
+from .restart_post import delete_comment
+from .restart_post import update_comment
+

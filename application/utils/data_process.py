@@ -88,7 +88,7 @@ def model_to_dict(instance, fields=None, exclude=None):
         if isinstance(f, models.ImageField) or isinstance(f, models.FileField):
             data[f.name] = f.value_from_object(instance).url
         elif isinstance(f, models.ManyToManyField):
-            data[f.name] = [i.name for i in f.value_from_object(instance)]
+            data[f.name] = [i.pk for i in f.value_from_object(instance)]
         else:
             data[f.name] = f.value_from_object(instance)
     return data

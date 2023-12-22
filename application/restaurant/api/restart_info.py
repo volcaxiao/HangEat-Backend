@@ -6,7 +6,7 @@
     4. 修改餐厅信息
     5. 删除餐厅
 """
-from django.http import HttpRequest
+from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET, require_http_methods
 from .. import *
 from ..models import Restaurant
@@ -80,7 +80,7 @@ def update_image(request: HttpRequest, restart_id: int):
     if img is not None:
         if img.size > 1024 * 1024 * 2:
             return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "图片大小不能超过2MB")
-        img.name = restart.name + '.png'
+        img.name = restart.name + str(timezone.now()) + '.png'
         restart.img = img
     restart.save()
     return success_api_response({"message": "修改成功！"})

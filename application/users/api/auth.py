@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 import jwt
-from django.conf import settings
 from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET
 

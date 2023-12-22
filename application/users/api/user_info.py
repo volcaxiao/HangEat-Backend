@@ -12,7 +12,7 @@
 """
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import make_password
-from django.http import HttpRequest, QueryDict
+from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET, require_http_methods
 from .. import *
 from .auth import generate_token, generate_refresh_token, jwt_auth
@@ -211,7 +211,7 @@ def update_avatar(request: HttpRequest):
             return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "图片大小不能超过2MB")
         if user.avatar.name != 'avatar/default.png':
             user.avatar.delete()
-        avatar.name = user.username + '.png'
+        avatar.name = user.username + str(timezone.now()) + '.png'
         user.avatar = avatar
     else:
         return failed_api_response(ErrorCode.REQUIRED_ARG_IS_NULL_ERROR, "图片不能为空")

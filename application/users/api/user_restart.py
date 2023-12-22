@@ -55,7 +55,7 @@ def get_collections_num(request):
 @require_GET
 def get_collections_list(request):
     user = request.user
-    left = int(request.GET.get('left'))
-    right = int(request.GET.get('right'))
+    left = int(request.GET.get('from'))
+    right = int(request.GET.get('to'))
     data = get_query_set_list(user.collections, left, right, ['id', 'name', 'img', 'creator', 'tags'])
     return success_api_response(data)

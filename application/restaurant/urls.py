@@ -21,6 +21,19 @@ urlpatterns = [
 
     path('upload-image', upload_image),
     path('create-post', creat_post),
-    path('create-comment', creat_comment),
+    path('get-post-num/<int:target_id>', get_post_num),
+    path('get-post-list/<int:target_id>', get_post_list),
+    path('get-post-detail/<int:post_id>', get_post_detail),
+    path('agree-post/<int:post_id>', agree_post),
+    path('disagree-post/<int:post_id>', disagree_post),
+    path('delete-post/<int:post_id>', delete_post),
+    path('update-post/<int:post_id>', update_post),
 
+    path('create-comment', creat_comment),
+    path('get-comment-num/<int:post_id>', get_comment_num),
+    path('get-comment-list/<int:post_id>', get_comment_list),
+    path('agree-comment/<int:comment_id>', agree_comment),
+    path('disagree-comment/<int:comment_id>', disagree_comment),
+    path('delete-comment/<int:comment_id>', delete_comment),
+    path('update-comment/<int:comment_id>', update_comment),
 ]

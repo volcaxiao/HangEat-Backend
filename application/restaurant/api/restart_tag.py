@@ -82,7 +82,8 @@ def get_tag_list(request: HttpRequest):
 @response_wrapper
 @require_GET
 def get_restaurant_num_by_tag(request: HttpRequest):
-    query_tags = request.GET.getlist('tags')
+    query_tags = request.GET.get('tags')
+    query_tags = query_tags.split(',')
     tags = Tag.objects.filter(name__in=query_tags)
     restaurant_list = Restaurant.objects.filter(tags__in=tags).distinct()
     return success_api_response({'restaurant_num': restaurant_list.count()})
@@ -91,7 +92,8 @@ def get_restaurant_num_by_tag(request: HttpRequest):
 @response_wrapper
 @require_GET
 def get_restaurant_list_by_tag(request: HttpRequest):
-    query_tags = request.GET.getlist('tags')
+    query_tags = request.GET.get('tags')
+    query_tags = query_tags.split(',')
     tags = Tag.objects.filter(name__in=query_tags)
     restaurant_list = Restaurant.objects.filter(tags__in=tags).distinct()
     left = int(request.GET.get('from'))
