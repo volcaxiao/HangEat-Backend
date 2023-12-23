@@ -5,7 +5,7 @@
     4. 获取所有tag
     5. 用tag筛选餐馆
 """
-from django.http import HttpRequest
+from ..forms import *
 from django.views.decorators.http import require_POST, require_GET, require_http_methods
 from .. import *
 from ..models import Restaurant
@@ -85,35 +85,3 @@ def get_tag_list(request: HttpRequest):
             tag.delete()
             data['list'].remove(item)
     return success_api_response(data)
-
-
-@response_wrapper
-@jwt_auth(allow_anonymous=True)
-@require_GET
-def get_restaurant_num_by_tag(request: HttpRequest):
-    query_tags = request.GET.get('tags')
-    if query_tags is None:
-        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "请指定tags")
-    query_tags = query_tags.split(',')
-    tags = Tag.objects.filter(name__in=query_tags)
-    restaurant_list = Restaurant.objects.filter(tags__in=tags).distinct()
-    return success_api_response({'restaurant_num': restaurant_list.count()})
-
-
-@response_wrapper
-@jwt_auth(allow_anonymous=True)
-@require_GET
-def get_restaurant_list_by_tag(request: HttpRequest):
-    query_tags = request.GET.get('tags')
-    query_tags = query_tags.split(',')
-    tags = Tag.objects.filter(name__in=query_tags)
-    restaurant_list = Restaurant.objects.filter(tags__in=tags).distinct()
-    left = int(request.GET.get('from'))
-    right = int(request.GET.get('to'))
-    data = get_query_set_list(restaurant_list, left, right, ['id', 'name', 'img', 'creator', 'tags'])
-    for item in data['list']:
-        restaurant = Restaurant.objects.get(id=item['id'])
-        item['collectors_num'] = restaurant.collectors.count()
-        item['is_collected'] = request.user in restaurant.collectors.all()
-    return success_api_response(data)
-

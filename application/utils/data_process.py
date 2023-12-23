@@ -7,7 +7,6 @@ from django.db import models
 from django.db.models import QuerySet
 from django.http import HttpRequest
 from django.conf import settings
-import oss2
 
 def parse_data(request: HttpRequest) -> dict:
     """Parse request body and generate python dict
@@ -41,14 +40,10 @@ def get_query_set_list(query_set: QuerySet, left: int, right: int, fields: list 
     """Get the list of query set
 
     Args:
-        exclude: list of exclude fields
-        fields: list of include fields
+        exclude: list of exclude fields        : list of include fields
         query_set (QuerySet): django query set
         left (int): left index
         right (int): right index
-
-    Returns:
-        list: list of query set
     """
     query_set_num = get_query_set_num(query_set)
     query_set = query_set.all()
@@ -100,8 +95,6 @@ def upload_img_file(image):
     :param image: b字节文件
     :return: 若成功返回图片路径，若不成功返回空
     """
-    # oss配置
-    auth = oss2
     # 生成文件编号，如果文件名重复的话在oss中会覆盖之前的文件
     number = uuid.uuid4()
     # 生成文件名

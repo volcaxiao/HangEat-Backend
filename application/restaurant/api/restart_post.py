@@ -26,20 +26,36 @@ def creat_post(request):
     restart_id = post_data.get('restaurant_id')
     title = post_data.get('title')
     content = post_data.get('content')
+    if len(content) > 2000:
+        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "帖子内容过长！")
     grade = post_data.get('grade')
     price = post_data.get('price')
-    image = post_data.get('image')
 
     if Restaurant.objects.filter(id=restart_id).exists():
         restart = Restaurant.objects.get(id=restart_id)
         post = Post(title=title, content=content, creator=user, restaurant=restart, grade=grade, avg_price=price)
-        if image:
-            post.image = image
         post.save()
         return success_api_response({"message": "创建成功！", "id": post.id})
     else:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "餐厅不存在！")
 
+@response_wrapper
+@jwt_auth()
+@require_POST
+def update_post_image(request: HttpRequest, post_id: int):
+    post = Post.objects.get(id=post_id)
+    if post is None:
+        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '帖子不存在')
+    if post.creator != request.user:
+        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '无权修改')
+    image = request.FILES.get('image') if request.FILES.get('image') else None
+    if image is None:
+        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "图片为空！")
+    if image.size > 1024 * 1024 * 2:
+        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "图片大小超过2M！")
+    post.image = image
+    post.save()
+    return success_api_response({"message": "修改成功！", "url": post.image.url})
 
 @response_wrapper
 @jwt_auth()
@@ -52,9 +68,6 @@ def upload_image(request):
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "图片为空！")
     if image.size > 1024 * 1024 * 2:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "图片大小超过2M！")
-    if image.content_type not in ['image/jpeg', 'image/png', 'image/gif']:
-        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "图片格式不正确！")
-
     url = upload_img_file(image)
     if url is None:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "图片上传失败！")
@@ -75,7 +88,7 @@ def get_post_list(request: HttpRequest, target_id: int):
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
     post_list = Post.objects.filter(restaurant_id=target_id)
-    data = get_query_set_list(post_list, left, right, ['id', 'title', 'grade', 'avg_price', 'creator', 'image', 'agrees'])
+    data = get_query_set_list(post_list, left, right, ['id', 'title', 'content', 'grade', 'avg_price', 'creator', 'image', 'agrees'])
     for post in data['list']:
         post['agrees'] = len(post['agrees'])
         post['is_agreed'] = request.user in Post.objects.get(id=post['id']).agrees.all()
