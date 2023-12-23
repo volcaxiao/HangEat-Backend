@@ -22,6 +22,7 @@ from .restart_post import agree_post
 from .restart_post import disagree_post
 from .restart_post import delete_post
 from .restart_post import update_post
+from .restart_post import get_hot_posts
 
 from .restart_post import creat_comment
 from .restart_post import get_comment_num

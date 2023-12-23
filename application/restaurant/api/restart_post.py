@@ -9,6 +9,7 @@
     7. 举报帖子
     8. 举报评论
 """
+from django.db.models import Count
 from django.http import HttpRequest
 from django.views.decorators.http import require_POST, require_GET, require_http_methods
 from .. import *
@@ -271,11 +272,10 @@ def update_comment(request: HttpRequest, comment_id: int):
     return success_api_response({"message": "修改成功！"})
 
 @response_wrapper
-@jwt_auth()
+@jwt_auth(allow_anonymous=True)
 @require_GET
-def get_hot_post(request: HttpRequest, target_id: int):
-    post_list = Post.objects.filter(restaurant_id=target_id).all()
-    post_list = sorted(post_list, key=lambda x: x.agrees.count(), reverse=True)
+def get_hot_posts(request: HttpRequest, target_id: int):
+    post_list = Post.objects.filter(restaurant_id=target_id).annotate(agree_num=Count('agrees')).order_by('-agree_num')
     data = get_query_set_list(post_list, 0, 5, ['id', 'title', 'grade', 'avg_price', 'creator', 'image', 'agrees'])
     for post in data['list']:
         post['agrees'] = len(post['agrees'])

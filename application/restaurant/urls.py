@@ -28,6 +28,7 @@ urlpatterns = [
     path('disagree-post/<int:post_id>', disagree_post),
     path('delete-post/<int:post_id>', delete_post),
     path('update-post/<int:post_id>', update_post),
+    path('get-hot-posts/<int:target_id>', get_hot_posts),
     # comment
     path('create-comment', creat_comment),
     path('get-comment-num/<int:post_id>', get_comment_num),
