@@ -40,8 +40,6 @@ def login_user(request: HttpRequest):
         user = authenticate(username=username, password=password)
 
     if user is not None and not user.isDelete:
-        # 登录成功
-        login(request, user)
         # 生成token
         token = generate_token(user)
         refresh_token = generate_refresh_token(user)
@@ -101,8 +99,7 @@ def signup_user(request: HttpRequest):
 @require_GET
 def logout_user(request):
     # 登出用户
-    logout(request)
-
+    AuthRecord.objects.filter(user=request.user).delete()
     return success_api_response({'message': '登出成功'})
 
 

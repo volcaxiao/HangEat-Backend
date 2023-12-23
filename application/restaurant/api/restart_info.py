@@ -6,6 +6,7 @@
     4. 修改餐厅信息
     5. 删除餐厅
 """
+from django.db.models import Avg
 from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET, require_http_methods
 from .. import *
@@ -34,7 +35,7 @@ def creat_restaurant(request):
         restart.phone = phone
 
     restart.save()
-    return success_api_response({"message": "创建成功！"})
+    return success_api_response({"message": "创建成功！", "id": restart.id})
 
 
 @response_wrapper
@@ -87,16 +88,24 @@ def update_image(request: HttpRequest, restart_id: int):
 
 
 @response_wrapper
+@jwt_auth(allow_anonymous=True)
 @require_GET
 def get_restaurant_detail(request: HttpRequest, restart_id: int):
     restart = Restaurant.objects.get(id=restart_id)
     if restart is None:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '餐馆不存在')
     detail = model_to_dict(restart)
+
+    detail['collectors_num'] = restart.collectors.count()
+    detail['is_collected'] = request.user in restart.collectors.all()
+
+    detail['avg_grade'] = restart.posts.aggregate(Avg('grade'))['grade__avg']
+    detail['avg_price'] = restart.posts.aggregate(Avg('avg_price'))['avg_price__avg']
     return success_api_response(detail)
 
 
 @response_wrapper
+@jwt_auth(allow_anonymous=True)
 @require_GET
 def get_restaurant_num(request: HttpRequest):
     creator_id = request.GET.get('creator_id')
@@ -108,6 +117,7 @@ def get_restaurant_num(request: HttpRequest):
 
 
 @response_wrapper
+@jwt_auth(allow_anonymous=True)
 @require_GET
 def get_restaurant_list(request):
     creator_id = request.GET.get('creator_id')
@@ -118,6 +128,10 @@ def get_restaurant_list(request):
     else:
         restaurant_set = Restaurant.objects
     data = get_query_set_list(restaurant_set, left, right, ['id', 'name', 'img', 'creator', 'tags'])
+    for item in data['list']:
+        restaurant = Restaurant.objects.get(id=item['id'])
+        item['collectors_num'] = restaurant.collectors.count()
+        item['is_collected'] = request.user in restaurant.collectors.all()
     return success_api_response(data)
 
 
@@ -133,25 +147,8 @@ def delete_restaurant(request: HttpRequest, restart_id: int):
     restart.delete()
     return success_api_response({"message": "删除成功！"})
 
-
 @response_wrapper
+@jwt_auth()
 @require_GET
-def get_collectors_num(request: HttpRequest, restart_id: int):
-    target_restart = Restaurant.objects.filter(id=restart_id).first()
-    if target_restart is None:
-        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "餐厅不存在！")
-    collectors = target_restart.collectors.all()
-    return success_api_response({"collectors_num": collectors.count()})
-
-
-# @response_wrapper
-# @jwt_auth()
-# @require_GET
-# def get_collectors_list(request: HttpRequest, restart_id: int):
-#     target_restart = Restaurant.objects.filter(id=restart_id).first()
-#     if target_restart is None:
-#         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "餐厅不存在！")
-#     left = int(request.GET.get('left'))
-#     right = int(request.GET.get('right'))
-#     data = get_query_set_list(target_restart.collectors, left, right, ['id', 'username', 'motto', 'avatar'])
-#     return success_api_response(data)
+def get_recommend_list():
+    pass

@@ -35,7 +35,7 @@ def creat_post(request):
         if image:
             post.image = image
         post.save()
-        return success_api_response({"message": "创建成功！"})
+        return success_api_response({"message": "创建成功！", "id": post.id})
     else:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "餐厅不存在！")
 
@@ -61,14 +61,14 @@ def upload_image(request):
     return success_api_response({"message": "上传成功！", "url": url})
 
 @response_wrapper
-@jwt_auth()
+@jwt_auth(allow_anonymous=True)
 @require_GET
 def get_post_num(request: HttpRequest, target_id: int):
     post_num = Post.objects.filter(restaurant_id=target_id).count()
     return success_api_response({'post_num': post_num})
 
 @response_wrapper
-@jwt_auth()
+@jwt_auth(allow_anonymous=True)
 @require_GET
 def get_post_list(request: HttpRequest, target_id: int):
     left = int(request.GET.get('from'))
@@ -77,10 +77,11 @@ def get_post_list(request: HttpRequest, target_id: int):
     data = get_query_set_list(post_list, left, right, ['id', 'title', 'grade', 'avg_price', 'creator', 'image', 'agrees'])
     for post in data['list']:
         post['agrees'] = len(post['agrees'])
+        post['is_agreed'] = request.user in Post.objects.get(id=post['id']).agrees.all()
     return success_api_response(data)
 
 @response_wrapper
-@jwt_auth()
+@jwt_auth(allow_anonymous=True)
 @require_GET
 def get_post_detail(request: HttpRequest, post_id: int):
     post = Post.objects.get(id=post_id)
@@ -88,6 +89,7 @@ def get_post_detail(request: HttpRequest, post_id: int):
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, '帖子不存在')
     detail = model_to_dict(post)
     detail['agrees'] = post.agrees.count()
+    detail['is_agreed'] = request.user in post.agrees.all()
     return success_api_response(detail)
 
 @response_wrapper
@@ -178,27 +180,28 @@ def creat_comment(request):
                 return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "回复评论不存在！")
             comment.reply_to = reply_to
         comment.save()
-        return success_api_response({"message": "创建成功！"})
+        return success_api_response({"message": "创建成功！", "id": comment.id})
     else:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "帖子不存在！")
 
 @response_wrapper
-@jwt_auth()
+@jwt_auth(allow_anonymous=True)
 @require_GET
 def get_comment_num(request: HttpRequest, post_id: int):
     comment_num = Comment.objects.filter(refer_post_id=post_id, reply_to__isnull=True).count()
     return success_api_response({'comment_num': comment_num})
 
-def get_comment_info_below(comment: Comment):
+def get_comment_info_below(comment: Comment, request: HttpRequest):
     comment_list = []
     for reply in comment.replies.all():
         comment_list.append(model_to_dict(reply, ['id', 'content', 'author', 'reply_to', 'agrees']))
         comment_list[-1]['agrees'] = len(comment_list[-1]['agrees'])
-        comment_list += get_comment_info_below(reply)
+        comment_list[-1]['is_agreed'] = request.user in reply.agrees.all()
+        comment_list += get_comment_info_below(reply, request)
     return comment_list
 
 @response_wrapper
-@jwt_auth()
+@jwt_auth(allow_anonymous=True)
 @require_GET
 def get_comment_list(request: HttpRequest, post_id: int):
     left = int(request.GET.get('from'))
@@ -208,7 +211,8 @@ def get_comment_list(request: HttpRequest, post_id: int):
     for comment in data['list']:
         comment['agrees'] = len(comment['agrees'])
         comment_model = Comment.objects.get(id=comment['id'])
-        replies = get_comment_info_below(comment_model)
+        comment['is_agreed'] = request.user in comment_model.agrees.all()
+        replies = get_comment_info_below(comment_model, request)
         comment['replies'] = replies
     return success_api_response(data)
 
@@ -265,3 +269,15 @@ def update_comment(request: HttpRequest, comment_id: int):
         comment.content = content
     comment.save()
     return success_api_response({"message": "修改成功！"})
+
+@response_wrapper
+@jwt_auth()
+@require_GET
+def get_hot_post(request: HttpRequest, target_id: int):
+    post_list = Post.objects.filter(restaurant_id=target_id).all()
+    post_list = sorted(post_list, key=lambda x: x.agrees.count(), reverse=True)
+    data = get_query_set_list(post_list, 0, 5, ['id', 'title', 'grade', 'avg_price', 'creator', 'image', 'agrees'])
+    for post in data['list']:
+        post['agrees'] = len(post['agrees'])
+        post['is_agreed'] = request.user in Post.objects.get(id=post['id']).agrees.all()
+    return success_api_response(data)

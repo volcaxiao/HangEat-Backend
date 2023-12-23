@@ -57,13 +57,14 @@ def delete_tag(request: HttpRequest):
     target.tags.remove(tag)
 
     # 如果没有餐厅使用这个tag了，就删除这个tag
-    if tag.restaurant_set.count() == 0:
+    if tag.restaurants.count() == 0:
         tag.delete()
 
     return success_api_response({'message': '删除成功'})
 
 
 @response_wrapper
+@jwt_auth(allow_anonymous=True)
 @require_GET
 def get_tag_num(request: HttpRequest):
     tag_cnt = Tag.objects.count()
@@ -71,18 +72,28 @@ def get_tag_num(request: HttpRequest):
 
 
 @response_wrapper
+@jwt_auth(allow_anonymous=True)
 @require_GET
 def get_tag_list(request: HttpRequest):
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
     data = get_query_set_list(Tag.objects, left, right, ['name'])
+    for item in data['list']:
+        refer_cnt = Tag.objects.get(name=item['name']).restaurants.count()
+        if refer_cnt == 0:
+            tag = Tag.objects.get(name=item['name'])
+            tag.delete()
+            data['list'].remove(item)
     return success_api_response(data)
 
 
 @response_wrapper
+@jwt_auth(allow_anonymous=True)
 @require_GET
 def get_restaurant_num_by_tag(request: HttpRequest):
     query_tags = request.GET.get('tags')
+    if query_tags is None:
+        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "请指定tags")
     query_tags = query_tags.split(',')
     tags = Tag.objects.filter(name__in=query_tags)
     restaurant_list = Restaurant.objects.filter(tags__in=tags).distinct()
@@ -90,6 +101,7 @@ def get_restaurant_num_by_tag(request: HttpRequest):
 
 
 @response_wrapper
+@jwt_auth(allow_anonymous=True)
 @require_GET
 def get_restaurant_list_by_tag(request: HttpRequest):
     query_tags = request.GET.get('tags')
@@ -99,5 +111,9 @@ def get_restaurant_list_by_tag(request: HttpRequest):
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
     data = get_query_set_list(restaurant_list, left, right, ['id', 'name', 'img', 'creator', 'tags'])
+    for item in data['list']:
+        restaurant = Restaurant.objects.get(id=item['id'])
+        item['collectors_num'] = restaurant.collectors.count()
+        item['is_collected'] = request.user in restaurant.collectors.all()
     return success_api_response(data)
 

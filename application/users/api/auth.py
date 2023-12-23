@@ -135,15 +135,17 @@ def generate_refresh_token(user: User, refresh_token_delta: int = 6 * 24) -> str
     return byte2str(jwt.encode(refresh_token_payload, settings.SECRET_KEY, algorithm="HS256"))
 
 
-def jwt_auth():
+def jwt_auth(allow_anonymous=False):
     def decorator(api):
         def wrapper(request, *args, **kwargs):
             user = get_user(request)
-            request.user = user
             if user is None or user.isDelete:
-                return failed_api_response(ErrorCode.UNAUTHORIZED_ERROR, '未登录')
+                if allow_anonymous:
+                    user = None
+                else:
+                    return failed_api_response(ErrorCode.UNAUTHORIZED_ERROR, '未登录')
+            request.user = user
             return api(request, *args, **kwargs)
-
         return wrapper
     return decorator
 
