@@ -94,7 +94,7 @@ DATABASES = {
         'PASSWORD': _YAML_CONFIG['Database']['Password'],
         'HOST': _YAML_CONFIG['Database']['Host'],
         'PORT': _YAML_CONFIG['Database']['Port'],
-        'OPTIONS': {'init_command': 'SET default_storage_engine=INNODB;'}
+        'OPTIONS': {'init_command': 'SET default_storage_engine=INNODB;', 'charset': 'utf8mb4'}
     }
 }
 
