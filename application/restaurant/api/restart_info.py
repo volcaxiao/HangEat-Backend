@@ -62,13 +62,15 @@ def update_restaurant(request: HttpRequest, restart_id: int):
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "餐厅已存在！")
     if name is not None:
         restart.name = name
-    if description is not None:
+    if description is not None and len(description) <= 200:
         restart.description = description
     if detail_addr is not None:
         restart.detail_addr = detail_addr
     if phone is not None:
         restart.phone = phone
     restart.save()
+    if len(description) > 200:
+        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "描述过长，其余修改已保存")
     return success_api_response({"message": "修改成功！"})
 
 

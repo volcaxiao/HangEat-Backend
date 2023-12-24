@@ -8,7 +8,7 @@ from django.conf import settings
 
 class Restaurant(models.Model):
     name = models.CharField(max_length=50)
-    description = models.CharField(max_length=200)
+    description = models.CharField(max_length=500)
     address = models.ForeignKey('Address', on_delete=models.CASCADE, null=True)
     detail_addr = models.CharField(max_length=200, null=True, blank=True)
     phone = models.CharField(max_length=20, null=True, blank=True)

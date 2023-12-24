@@ -17,6 +17,8 @@ from .restart_post import update_post_image
 from .restart_post import upload_image
 from .restart_post import get_post_num
 from .restart_post import get_post_list
+from .restart_post import get_post_num_by_user
+from .restart_post import get_post_list_by_user
 from .restart_post import get_post_detail
 from .restart_post import agree_post
 from .restart_post import disagree_post

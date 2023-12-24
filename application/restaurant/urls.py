@@ -23,6 +23,8 @@ urlpatterns = [
     path('update-post-image/<int:post_id>', update_post_image),
     path('get-post-num/<int:target_id>', get_post_num),
     path('get-post-list/<int:target_id>', get_post_list),
+    path('get-post-num-by-user/<int:user_id>', get_post_num_by_user),
+    path('get-post-list-by-user/<int:user_id>', get_post_list_by_user),
     path('get-post-detail/<int:post_id>', get_post_detail),
     path('agree-post/<int:post_id>', agree_post),
     path('disagree-post/<int:post_id>', disagree_post),

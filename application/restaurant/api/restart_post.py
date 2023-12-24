@@ -31,7 +31,11 @@ def creat_post(request):
     if len(content) > 2000:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "帖子内容过长！")
     grade = post_data.get('grade')
+    if grade not in [0, 1, 2, 3, 4, 5]:
+        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "评分不合法！")
     price = post_data.get('price')
+    if price < 0 or price > 9999:
+        return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "人均价格不合理！")
 
     if Restaurant.objects.filter(id=restart_id).exists():
         restart = Restaurant.objects.get(id=restart_id)
@@ -91,6 +95,27 @@ def get_post_list(request: HttpRequest, target_id: int):
     left = int(request.GET.get('from'))
     right = int(request.GET.get('to'))
     post_list = Post.objects.filter(restaurant_id=target_id)
+    data = get_query_set_list(post_list, left, right, ['id', 'title', 'content', 'grade', 'avg_price', 'creator', 'image', 'agrees'])
+    for post in data['list']:
+        post['agrees'] = len(post['agrees'])
+        post['is_agreed'] = request.user in Post.objects.get(id=post['id']).agrees.all()
+    return success_api_response(data)
+
+@response_wrapper
+@jwt_auth(allow_anonymous=True)
+@require_GET
+def get_post_num_by_user(request: HttpRequest, user_id: int):
+    post_num = Post.objects.filter(creator_id=user_id).count()
+    return success_api_response({'post_num': post_num})
+
+
+@response_wrapper
+@jwt_auth(allow_anonymous=True)
+@require_GET
+def get_post_list_by_user(request: HttpRequest, user_id: int):
+    left = int(request.GET.get('from'))
+    right = int(request.GET.get('to'))
+    post_list = Post.objects.filter(creator_id=user_id)
     data = get_query_set_list(post_list, left, right, ['id', 'title', 'content', 'grade', 'avg_price', 'creator', 'image', 'agrees'])
     for post in data['list']:
         post['agrees'] = len(post['agrees'])
