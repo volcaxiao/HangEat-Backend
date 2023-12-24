@@ -197,7 +197,7 @@ def get_restart_associate(user: User)->dict:
         print(asso_dict)
     subscriptions = user.subscriptions.all()
     for subscription in subscriptions:
-        for item in subscription.posts:
+        for item in subscription.posts.all():
             restart = item.restaurant
             asso_dict.update({restart: 0.1*item.grade+(asso_dict[restart] if asso_dict.__contains__(restart) else 0)})
             print(asso_dict)
@@ -259,7 +259,7 @@ def get_recommend_list(request: HttpRequest):
     restart_list = {}
     for restart in Restaurant.objects.all():
         score = get_restart_score(asso_tag, best_price, restart)
-        if score > 5: # 推荐值大才推荐
+        if score > 1: # 推荐值大才推荐
             print(restart.name, score)
             restart_list.update({restart: score})
     restart_list = sorted(restart_list.items(), key=lambda x: x[1], reverse=True)
