@@ -186,13 +186,13 @@ def update_post(request: HttpRequest, post_id: int):
     content = post_data.get('content')
     grade = post_data.get('grade')
     price = post_data.get('price')
-    if title:
+    if title and len(title) < 50:
         post.title = title
-    if content:
+    if content and len(content) < 2000:
         post.content = content
-    if grade:
+    if grade and grade in [0, 1, 2, 3, 4, 5]:
         post.grade = grade
-    if price:
+    if price and 0 <= price <= 9999:
         post.avg_price = price
     post.save()
     return success_api_response({"message": "修改成功！"})
