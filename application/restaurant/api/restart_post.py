@@ -9,8 +9,10 @@
     7. 举报帖子
     8. 举报评论
 """
+
+
 from django.db.models import Count
-from django.http import HttpRequest
+from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET, require_http_methods
 from .. import *
 from ..models import Restaurant, Post, Comment
@@ -53,6 +55,7 @@ def update_post_image(request: HttpRequest, post_id: int):
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "图片为空！")
     if image.size > 1024 * 1024 * 2:
         return failed_api_response(ErrorCode.INVALID_REQUEST_ARGUMENT_ERROR, "图片大小超过2M！")
+    image.name = str(post_id) + str(timezone.now()) + '.png'
     post.image = image
     post.save()
     return success_api_response({"message": "修改成功！", "url": post.image.url})
@@ -158,7 +161,6 @@ def update_post(request: HttpRequest, post_id: int):
     content = post_data.get('content')
     grade = post_data.get('grade')
     price = post_data.get('price')
-    image = post_data.get('image')
     if title:
         post.title = title
     if content:
@@ -167,8 +169,6 @@ def update_post(request: HttpRequest, post_id: int):
         post.grade = grade
     if price:
         post.avg_price = price
-    if image:
-        post.image = image
     post.save()
     return success_api_response({"message": "修改成功！"})
 

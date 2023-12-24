@@ -15,10 +15,10 @@ urlpatterns = [
     path('get-user-info/<int:user_id>', get_user_info_by_id),
 
     path('refresh-token', refresh_token),
-
+    # email
     path('send-captcha', send_captcha),
     path('change-email', change_email),
-
+    # user&user
     path('subscribe', subscribe),
     path('unsubscribe', unsubscribe),
     path('get-subscriptions-num', get_subscriptions_num),
@@ -26,7 +26,7 @@ urlpatterns = [
     path('get-subscribers-num', get_subscribers_num),
     path('get-subscribers-list', get_subscribers_list),
     path('get-relation-between', get_relation_between),
-
+    # user&restart
     path('collect', collect_restart),
     path('uncollect', uncollect_restart),
     path('get-collections-num', get_collections_num),
