@@ -189,23 +189,19 @@ def get_restart_associate(user: User)->dict:
     collect_restart = user.collections.all()
     for item in collect_restart:
         asso_dict.update({item: 2.+(asso_dict.get(item) if asso_dict.__contains__(item) else 0)})
-        print(asso_dict)
     posts = user.posts.all()
     for item in posts:
         restart = item.restaurant
         asso_dict.update({restart: 0.3*item.grade+(asso_dict[restart] if asso_dict.__contains__(restart) else 0)})
-        print(asso_dict)
     subscriptions = user.subscriptions.all()
     for subscription in subscriptions:
         for item in subscription.posts.all():
             restart = item.restaurant
             asso_dict.update({restart: 0.1*item.grade+(asso_dict[restart] if asso_dict.__contains__(restart) else 0)})
-            print(asso_dict)
     agree_posts = user.agreedPosts.all()
     for item in agree_posts:
         restart = item.restaurant
         asso_dict.update({restart: 0.15*item.grade+(asso_dict[restart] if asso_dict.__contains__(restart) else 0)})
-        print(asso_dict)
     return asso_dict
 
 def get_restart_score(asso_dict: dict, best_price: float, restart: Restaurant):
@@ -241,7 +237,6 @@ def get_recommend_list(request: HttpRequest):
     asso_tag = {}
     total_price = 0
     total_wight = 0
-    print(asso_dict)
     for restart, weight in asso_dict.items():
         the_price = restart.posts.aggregate(Avg('avg_price'))['avg_price__avg']
         if the_price:
@@ -253,8 +248,6 @@ def get_recommend_list(request: HttpRequest):
     asso_tag = sorted(asso_tag.items(), key=lambda x: x[1], reverse=True)
     asso_tag = asso_tag[:10]
     asso_tag = dict(asso_tag)
-    print(asso_tag)
-    print(best_price)
     # 计算推荐值
     restart_list = {}
     for restart in Restaurant.objects.all():
