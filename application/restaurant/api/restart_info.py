@@ -209,7 +209,7 @@ def get_restart_score(asso_dict: dict, best_price: float, restart: Restaurant):
     for tag in restart.tags.all():
         score += asso_dict[tag] if asso_dict.__contains__(tag) else 0
     avg_price = restart.posts.aggregate(Avg('avg_price'))['avg_price__avg']
-    score += 10/(abs(avg_price-best_price)+1) if avg_price is not None else 0
+    score += 10/(abs(avg_price-best_price)+1) if avg_price is not None and best_price is not None else 0
     return score
 
 @response_wrapper
@@ -234,6 +234,9 @@ def get_recommend_list(request: HttpRequest):
         return success_api_response(data)
     # 计算权重值
     asso_dict = get_restart_associate(request.user)
+    if len(asso_dict) == 0:
+        data = basic_info_list(request, get_query_set_ordered(Restaurant.objects, OrderType.avg_grade), 0, 10)
+        return success_api_response(data)
     asso_tag = {}
     total_price = 0
     total_wight = 0
@@ -244,7 +247,7 @@ def get_recommend_list(request: HttpRequest):
             total_price += the_price*weight
         for tag in restart.tags.all():
             asso_tag.update({tag: weight+(asso_tag[tag] if asso_tag.__contains__(tag) else 0)})
-    best_price = total_price/total_wight
+    best_price = total_price/total_wight if total_wight != 0 else None
     asso_tag = sorted(asso_tag.items(), key=lambda x: x[1], reverse=True)
     asso_tag = asso_tag[:10]
     asso_tag = dict(asso_tag)
@@ -253,7 +256,6 @@ def get_recommend_list(request: HttpRequest):
     for restart in Restaurant.objects.all():
         score = get_restart_score(asso_tag, best_price, restart)
         if score > 1: # 推荐值大才推荐
-            print(restart.name, score)
             restart_list.update({restart: score})
     restart_list = sorted(restart_list.items(), key=lambda x: x[1], reverse=True)
     restart_list = [item[0] for item in restart_list][:10]
