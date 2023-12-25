@@ -257,6 +257,9 @@ def get_recommend_list(request: HttpRequest):
         score = get_restart_score(asso_tag, best_price, restart)
         if score > 1: # 推荐值大才推荐
             restart_list.update({restart: score})
+    if len(restart_list) < 2:
+        data = basic_info_list(request, get_query_set_ordered(Restaurant.objects, OrderType.avg_grade), 0, 10)
+        return success_api_response(data)
     restart_list = sorted(restart_list.items(), key=lambda x: x[1], reverse=True)
     restart_list = [item[0] for item in restart_list][:10]
     restart_list = Restaurant.objects.filter(pk__in=[x.pk for x in restart_list])
